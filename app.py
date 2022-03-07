@@ -8,6 +8,8 @@ from flask_login import login_user, logout_user,login_required, current_user
 from sqlalchemy.engine import url
 from sqlalchemy.sql import exists
 from sqlalchemy import func
+# import pymongo
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///test.db"
@@ -15,6 +17,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY']='lostandfound'
 
 db = SQLAlchemy(app)
+
+# conn_str = "mongodb+srv://Sarvika15:<sarvika1235>@cluster0.i0cug.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+# client = pymongo.MongoClient(conn_str, serverSelectionTimeoutMS=5000)
+
+
 # db.init_app(app)
 
 # with app.app_context():
@@ -36,7 +43,7 @@ class Lost(db.Model):
     color = db.Column(db.String(50), nullable=False)
     # date=db.Column(db.DateTime, default= datetime.utcnow)
     img = db.Column(db.LargeBinary, nullable=False)
-    # img_name = db.Column(db.String(50), nullable=False)
+    img_name = db.Column(db.String(50), nullable=False)
     # mimetype=db.Column(db.Text,nullable=False)
     location = db.Column(db.String(200), nullable=False)
     code = db.Column(db.Integer, nullable=False)
@@ -53,13 +60,14 @@ class Found(db.Model):
     color = db.Column(db.String(50), nullable=False)
     # date=db.Column(db.DateTime, default= datetime.utcnow)
     img = db.Column(db.LargeBinary, nullable=False)
-    # img_name = db.Column(db.String(50), nullable=False)
+    img_name = db.Column(db.String(50), nullable=False)
     # mimetype=db.Column(db.Text,nullable=False)
     location = db.Column(db.String(200), nullable=False)
     code = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(25), nullable=False)
     number = db.Column(db.Integer, primary_key=True, nullable=False)
     email = db.Column(db.String(50), nullable=False)
+    
 
     def __repr__(self) -> str:
         return f"{self.type}-{self.brand}-{self.color}-{self.img}-{self.location}-{self.code}-{self.name}-{self.number}-{self.email}"
@@ -199,11 +207,13 @@ def found_Detail():
 
         print(found_item_details["type"])
         pic = request.files['found_info_image']
+        pic.save(f"static/images/{secure_filename(pic.filename)}")
 
     
         found = Found(type=found_item_details["type"], brand=found_item_details["brand"], color=found_item_details["color"],
                     img=pic.read(),  location=found_item_details["location"], code=found_item_details["zip"],
-                    name=found_item_details["name"], number=found_item_details["number"], email=found_item_details["email"])
+                    name=found_item_details["name"], number=found_item_details["number"], email=found_item_details["email"],
+                    img_name=pic.filename)
         
         if found:
             info_register_success = True
